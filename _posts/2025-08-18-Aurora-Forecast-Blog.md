@@ -4,8 +4,7 @@ title: "Aurora Borealis Forecast Tool"
 date: 2025-08-18
 ---
 ## Introduction
----
-\
+
 I created a Python script which fetches Aurora data of a specific location. It collects cloud cover data, time of dusk at the location, and the percentage of an Aurora. When predicting the liklihood of a Aurora, cloud cover and time of dusk are both important factors to consider. Despite a high percentage of an Aurora, there ay be too much cloud cover, obscuring the view of the Aurora. Light intensity is another important factor, which is why I collected data on the time of dusk, ensuring that it is dark enough to view an Aurora.
 
 The Aurora data source and model I used was NOAA's (National Oceanic and Atmospheric Administration) 30 minute Aurora Forecast, which is powererd by the OVATION (Oval, Variation, Assessment, Tracking, Intensity, and Online Nowcasting) Prime model, which uses real-time data from satellites to estimate how much charged particle activity (which produces an Aurora) is hitting the Earth's atmosphere. The OVATION Prime model uses this data to calculate the probability as a percentage of an Aurora at different locations around the World.
@@ -29,9 +28,8 @@ The Aurora data source and model I used was NOAA's (National Oceanic and Atmosph
 - cron
 
 ## Code
----
 
-### Fetching Real-Time Aurora Data
+## Fetching Real-Time Aurora Data
 
 - This fetches a JSON file containing Aurora data from the URL as shown
 - The JSON data is converted to a Python dictionary using `.json()` which can be manipulated
@@ -45,7 +43,7 @@ def fetch_data(url):
     return data
 ```
 
-### Fetching Nautical Dusk Data
+## Fetching Nautical Dusk Data
 
 This uses the Sunrise-Sunset API to get the time when nautical twilight ends. This is the time when the sky becomes dark enough for Aurora and star viewing. This is important as an Aurora is much easier to view in low light conditions.
 
@@ -64,7 +62,7 @@ Before returning the time, I converted the `raw_time` into UTC time to allow us 
 utc_time = datetime.fromisoformat(raw_time).strftime("%Y-%m-%dT%H:%M:%SZ")
 ```
 
-### Fetching Cloud Cover Data
+## Fetching Cloud Cover Data
 
 This uses the OpenWeatherMap API to collect data on cloud cover for the next 3 hours.
 
@@ -82,7 +80,7 @@ cloud_cover = next_forecast['clouds']['all']
 utc_time = datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 ```
 
-### NOAA's Aurora Forecast Coordinate System
+## NOAA's Aurora Forecast Coordinate System
 
 When I first began working with the NOAA Aurora 30 minute Forecast data, I assumed that the coordinate format was the same as most other weather forecast API’s - using decimal degrees with negative values for longitudes and negative and positive signs for latitude and longitude. I used this standard format in order to extract the probability of an Aurora at a specified location.
 
@@ -102,7 +100,7 @@ From this, I realised:
 - Latitudes remaind standard so no change was needed
 - Also, all coordinate values were integers, so I had to round all parsed coordinates using Python’s built in `round()` function
 
-### Extracting Probability Data
+## Extracting Probability Data
 
 Here, I looped through NOAA’s `coordinates` data to find a matching latitude and longitude.
 
@@ -117,8 +115,7 @@ for coordinate in data["coordinates"]:
 ```
 
 ## Converting UTC to Other Timezones
----
-\
+
 Usually, APIs give timestamps in UTC (Coordinated Universal Time), which is a standard reference time known internationally. However, you want to be able to see the time, (e.g. time of dusk), in your local timezone, without the need of a conversion.
 
 These snippets of code convert UTC to any local timezone which is specified by the user:
@@ -154,8 +151,7 @@ return dt_local.strftime("%Y-%m-%d %H:%M:%S %Z")
 ```
 
 ## Sending Emails:
----
-\
+
 #### 1. Create the email client:
 
 I initialised the SMTP2GO client with the API key (received when setting up an accout), to authenticate your account, allowing me to freely send emails:
@@ -187,8 +183,7 @@ The `payload` dictionary sets:
 Using `client.send(**payload)`, the email is sent.
 
 ## Configuring the Script with Command Line Arguments:
----
-\
+
 To make the script more flexible, I used Python’s built in `argparse`. It allows users to specify inputs such as API key, timezone, email etc, at command-line, when running the program. This prevents users having to modify the code to meet their own needs.
 
 #### Here is a snippet of the script:
@@ -220,8 +215,7 @@ This code above means:
 By assigning each input to variables, the program can use them to fetch and process data from specific locations, convert to specific timezones and send emails to specified email addresses.
 
 ## Containerising the Script Using Docker
----
-\
+
 ### What is Docker?
 
 Docker is a software that lets you package your script and everything it needs, into a container which can be moved between other machines easily. Containers ensure your script runs exactly the same way on different machines, preventing any unnecessary issues.
@@ -271,8 +265,7 @@ ENTRYPOINT ["python", "northern_lights.py"]
 - I used `ENTRYPOINT` instead of `CMD` so that when I parsed argumets at command line, the arguments did not replace `python northern_lights.py`, which would cause an error
 
 ## Build and Transfer Docker Image to Raspberry Pi
----
-\
+
 ### Build Image:
 
 At first, when I built the docker image, I used:
@@ -340,8 +333,7 @@ tail -f /home/pi/northern.log
 Can be used to view the file live, allowing you to see exactly when and what errors occur.
 
 ## Scheduling the Script with Cron
----
-\
+
 Once the Docker image could be run reliably on the Raspberry Pi, I wanted a way to automate it. I wanted to run the scipt at regular intervals without the need for me to intervene.
 
 So, I decided to use `cron`:
