@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Aurora Forecast Tool - Code (Part 1)"
+title: "Aurora Borealis Forecast Tool"
 date: 2025-08-18
 ---
 ## Introduction
