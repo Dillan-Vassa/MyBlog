@@ -30,8 +30,6 @@ The Aurora data source and model I used was NOAA's (National Oceanic and Atmosph
 
 ## Code
 ---
-\
-In this post, we will briefly cover how each part of the code functions and what its purpose is in providing us data on the probability of an Aurora.
 
 ### Fetching Real-Time Aurora Data
 
