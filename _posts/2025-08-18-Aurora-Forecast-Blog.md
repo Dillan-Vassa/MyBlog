@@ -5,9 +5,11 @@ date: 2025-08-18
 ---
 ## Introduction
 
-I created a Python script which fetches Aurora data of a specific location. It collects cloud cover data, time of dusk at the location, and the percentage of an Aurora. When predicting the liklihood of a Aurora, cloud cover and time of dusk are both important factors to consider. Despite a high percentage of an Aurora, there ay be too much cloud cover, obscuring the view of the Aurora. Light intensity is another important factor, which is why I collected data on the time of dusk, ensuring that it is dark enough to view an Aurora.
+I created a Python script which fetches Aurora data of a specific location. It collects cloud cover data, time of dusk at the location, and the percentage of observing an Aurora. I containerised my script using Docker and scheduled it to run on my Raspberry Pi every day at a certain time using `cron`.
 
-The Aurora data source and model I used was NOAA's (National Oceanic and Atmospheric Administration) 30 minute Aurora Forecast, which is powererd by the OVATION (Oval, Variation, Assessment, Tracking, Intensity, and Online Nowcasting) Prime model, which uses real-time data from satellites to estimate how much charged particle activity (which produces an Aurora) is hitting the Earth's atmosphere. The OVATION Prime model uses this data to calculate the probability as a percentage of an Aurora at different locations around the World.
+When predicting the liklihood of a Aurora, cloud cover and time of dusk are both important factors to consider. Despite a high percentage of observing an Aurora, there ay be too much cloud cover, obscuring the view of the Aurora. Light intensity is another important factor, which is why I collected data on the time of dusk, ensuring that it is dark enough to view an Aurora.
+
+The Aurora data source and model I used was NOAA's (National Oceanic and Atmospheric Administration) 30 minute Aurora Forecast, which is powererd by the OVATION (Oval, Variation, Assessment, Tracking, Intensity, and Online Nowcasting) Prime model, which uses real-time data from satellites to estimate how much charged particle activity (which produces an Aurora) is hitting the Earth's atmosphere. The OVATION Prime model uses this data to calculate the probability as a percentage of observing an Aurora at different locations around the World.
 
 ### Project Goals
 
@@ -26,8 +28,6 @@ The Aurora data source and model I used was NOAA's (National Oceanic and Atmosph
 - Optional libraries: `pytest`, `json`
 - Docker
 - cron
-
-## Code
 
 ## Fetching Real-Time Aurora Data
 
