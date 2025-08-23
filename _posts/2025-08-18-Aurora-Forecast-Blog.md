@@ -3,7 +3,7 @@ layout: post
 title: "Aurora Borealis Forecast Tool"
 date: 2025-08-18
 ---
-# Introduction
+## Introduction
 
 I created a Python script which fetches Aurora data of a specific location. It collects cloud cover data, time of dusk at the location, and the percentage of an Aurora. When predicting the liklihood of a Aurora, cloud cover and time of dusk are both important factors to consider. Despite a high percentage of an Aurora, there ay be too much cloud cover, obscuring the view of the Aurora. Light intensity is another important factor, which is why I collected data on the time of dusk, ensuring that it is dark enough to view an Aurora.
 
@@ -27,7 +27,7 @@ The Aurora data source and model I used was NOAA's (National Oceanic and Atmosph
 - Docker
 - cron
 
-# Code
+## Code
 
 In this post, we will briefly cover how each part of the code functions and what its purpose is in providing us data on the probability of an Aurora.
 
@@ -116,7 +116,7 @@ for coordinate in data["coordinates"]:
         probability = coordinate[2]
 ```
 
-# Converting UTC to Other Timezones
+## Converting UTC to Other Timezones
 
 Usually, APIs give timestamps in UTC (Coordinated Universal Time), which is a standard reference time known internationally. However, you want to be able to see the time, (e.g. time of dusk), in your local timezone, without the need of a conversion.
 
@@ -152,7 +152,7 @@ return dt_local.strftime("%Y-%m-%d %H:%M:%S %Z")
 2025-07-02 23:45:00 BST
 ```
 
-# Sending Emails:
+## Sending Emails:
 
 #### 1. Create the email client:
 
@@ -184,7 +184,7 @@ The `payload` dictionary sets:
 
 Using `client.send(**payload)`, the email is sent.
 
-# Configuring the Script with Command Line Arguments:
+## Configuring the Script with Command Line Arguments:
 
 To make the script more flexible, I used Python’s built in `argparse`. It allows users to specify inputs such as API key, timezone, email etc, at command-line, when running the program. This prevents users having to modify the code to meet their own needs.
 
@@ -216,7 +216,7 @@ This code above means:
 
 By assigning each input to variables, the program can use them to fetch and process data from specific locations, convert to specific timezones and send emails to specified email addresses.
 
-# Containerising the Script Using Docker
+## Containerising the Script Using Docker
 
 ### What is Docker?
 
@@ -266,7 +266,7 @@ ENTRYPOINT ["python", "northern_lights.py"]
 - This means that Docker runs `python northern_lights.py`
 - I used `ENTRYPOINT` instead of `CMD` so that when I parsed argumets at command line, the arguments did not replace `python northern_lights.py`, which would cause an error
 
-# Build and Transfer Docker Image to Raspberry Pi
+## Build and Transfer Docker Image to Raspberry Pi
 
 ### Build Image:
 
@@ -334,7 +334,7 @@ tail -f /home/pi/northern.log
 
 Can be used to view the file live, allowing you to see exactly when and what errors occur.
 
-# Scheduling the Script with Cron
+## Scheduling the Script with Cron
 
 Once the Docker image could be run reliably on the Raspberry Pi, I wanted a way to automate it. I wanted to run the scipt at regular intervals without the need for me to intervene.
 
