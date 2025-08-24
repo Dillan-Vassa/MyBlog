@@ -7,7 +7,7 @@ date: 2025-08-18
 
 I created a Python script which fetches Aurora data of a specific location. It collects cloud cover data, time of dusk at the location, and the percentage of observing an Aurora. I containerised my script using Docker and scheduled it to run on my Raspberry Pi every day at a certain time using `cron`.
 
-When predicting the liklihood of a Aurora, cloud cover and time of dusk are both important factors to consider. Despite a high percentage of observing an Aurora, there ay be too much cloud cover, obscuring the view of the Aurora. Light intensity is another important factor, which is why I collected data on the time of dusk, ensuring that it is dark enough to view an Aurora.
+When predicting the liklihood of a Aurora, cloud cover and time of dusk are both important factors to consider. Despite a high percentage of observing an Aurora, there may be too much cloud cover, obscuring the view of an Aurora. Light intensity is another important factor, which is why I collected data on the time of dusk, ensuring that it is dark enough to view an Aurora.
 
 The Aurora data source and model I used was NOAA's (National Oceanic and Atmospheric Administration) 30 minute Aurora Forecast, which is powererd by the OVATION (Oval, Variation, Assessment, Tracking, Intensity, and Online Nowcasting) Prime model, which uses real-time data from satellites to estimate how much charged particle activity (which produces an Aurora) is hitting the Earth's atmosphere. The OVATION Prime model uses this data to calculate the probability as a percentage of observing an Aurora at different locations around the World.
 
@@ -15,9 +15,9 @@ The Aurora data source and model I used was NOAA's (National Oceanic and Atmosph
 
 - Fetch real-time Aurora data from the NOAA
 - Fetch data on cloud cover from OpenWeatherMap - a service that provides global weather data
-- Fetch data on time of dusk from Sunrise Sunset - a service that provides global data on sunset and sunrise times
+- Fetch data on time of dusk from Sunrise-Sunset - a service that provides global data on sunset and sunrise times
 - Extract the probability of an Aurora for the selected coordinates of a location
-- Send an email containing all fetched data
+- Send an email containing all fetched data using SMTP2GO (a service that allows emails to be sent)
 - Containerise the script using Docker
 - Schedule the script to run every 21:00 to 23:00 UTC using cron ( a scheduler) on a Raspberry Pi
 
@@ -27,14 +27,14 @@ The Aurora data source and model I used was NOAA's (National Oceanic and Atmosph
 - Libraries: `requests`, `datetime`, `argparse`, `zoneinfo`, `smtp2goClient`
 - Optional libraries: `pytest`, `json`
 - Docker
-- cron
+- `cron`
 
 ## Fetching Real-Time Aurora Data
 
-- This fetches a JSON file containing Aurora data from the URL as shown
-- The JSON data is converted to a Python dictionary using `.json()` which can be manipulated
+- This fetches a JSON file containing Aurora data from the URL as shown below
+- The JSON data is converted to a Python dictionary using `.json()` which can be manipulated easily
 - The function returns all data and is accessible elsewhere in the script.
-- Instead of specifying the URL, I provided an argument which allowed me to reuse this function for fetching any other data that was needed.
+- At first, I specified the URL, but I figured that I needed to reuse the function to fetch other data. So, instead of specifying the URL, I provided an argument which allowed me to reuse this function for fetching any other data that was needed.
 
 ```python
 def fetch_data(url):
@@ -45,7 +45,14 @@ def fetch_data(url):
 
 ## Fetching Nautical Dusk Data
 
-This uses the Sunrise-Sunset API to get the time when nautical twilight ends. This is the time when the sky becomes dark enough for Aurora and star viewing. This is important as an Aurora is much easier to view in low light conditions.
+This uses the Sunrise-Sunset API to get the time when  dusk ends (the beginning of twilight). This is the time when the sky becomes dark enough for Aurora and star viewing.
+
+The Sunrise-Sunset API provides data on two types of dusk:
+
+- Civil dusk
+- Nautical dusk
+
+I found out that civil dusk is when the sun's position is 6 degrees below the horizon, however, nautical dusk is when the sun is 12 degrees below the horizon. Therefore, the end of nautical dusk (nautical twilight) was the best time to observe an Aurora.
 
 This API response as well as the others, are returned in JSON format, which Python handles as dictionaries and lists, making it easy to extract data.
 
@@ -56,7 +63,7 @@ data = jsontext.json()
 raw_time = data['results']['nautical_twilight_end']
 ```
 
-Before returning the time, I converted the `raw_time` into UTC time to allow us to convert the time to a different timezone as shown later.
+Before returning the time, I converted the `raw_time` into UTC time to allow me to convert the time to a different timezone as shown later.
 
 ```python
 utc_time = datetime.fromisoformat(raw_time).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -84,20 +91,20 @@ utc_time = datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime("%Y-%m-%d
 
 When I first began working with the NOAA Aurora 30 minute Forecast data, I assumed that the coordinate format was the same as most other weather forecast API’s - using decimal degrees with negative values for longitudes and negative and positive signs for latitude and longitude. I used this standard format in order to extract the probability of an Aurora at a specified location.
 
-However, my initial attempts at extracting Aurora probabilities produced unexpected results. When I compared my percentage probability to the Aurora 30 minute forecast clip, the probabilities didn’t make sense for the places I collected data from.
+However, initially, the extracted Aurora data gave unexpected results. When I compared my percentage probability to the Aurora 30 minute forecast clip by the NOAA, the probabilities didn’t make sense for the places I collected data from.
 
-I observed the first and last coordinate sets in NOAA’s latest JSON file, I noticed:
+So, I observed the first and last coordinate sets in NOAA’s latest JSON file, I noticed:
 
 - The longitudes ranged from 0 to 359, and were never negative
 - The latitudes ranged from -90 to +90, as expected
 
-This pattern revealed that the NOAA was using a 0-359 longitude system instead of the standard -180 to +180.
+This pattern had revealed that the NOAA was using a 0-359 longitude system instead of the standard -180 to +180.
 
-From this, I realised:
+From this, I found out that:
 
-- All negative longitudes, (west of Greenwich) were converted by adding 360
+- All negative longitudes, (west of Greenwich) were converted by adding 360 degrees
 - E.g. -115 longitude became 360 + (-115) = 245
-- Latitudes remaind standard so no change was needed
+- Latitudes remained standard so no change was needed
 - Also, all coordinate values were integers, so I had to round all parsed coordinates using Python’s built in `round()` function
 
 ## Extracting Probability Data
@@ -112,6 +119,15 @@ I was able to loop through NOAA’s data easily, because the original JSON had b
 for coordinate in data["coordinates"]:
     if coordinate[0] == long and coordinate[1] == lat:
         probability = coordinate[2]
+```
+
+I also ensured to convert any negative longitudes to positive to match NOAA's coordinate format, as well as rounding any decimal values:
+
+```python
+if long < 0:
+    long = 360 + long
+long = math.floor(long)
+lat = math.floor(lat)
 ```
 
 ## Converting UTC to Other Timezones
