@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Aurora Borealis Forecast Tool"
-date: 2025-08-18
+date: 2025-07-18
 ---
 ## Introduction
 
