@@ -132,13 +132,13 @@ lat = math.floor(lat)
 
 ## Converting UTC to Other Timezones
 
-Usually, APIs give timestamps in UTC (Coordinated Universal Time), which is a standard reference time known internationally. However, you want to be able to see the time, (e.g. time of dusk), in your local timezone, without the need of a conversion.
+Usually, APIs give timestamps in UTC (Coordinated Universal Time), which is a standard reference time known internationally. However, I wanted to be able to see the time, (e.g. time of dusk), in my local timezone, with ease.
 
 These snippets of code convert UTC to any local timezone which is specified by the user:
 
 #### 1. Parsing the UTC timestamp:
 
-UTC time strings usually end in `“Z”`, which means UTC time. `fromisoformat()` can't recognise `“Z”` directly so I replaced it with `“+00:00”`, the equivilent of `“Z”`:
+UTC time strings usually end in `“Z”`, which means UTC time. However, `fromisoformat()` can't recognise `“Z”` directly, so I replaced it with `“+00:00”`, the equivilent of `“Z”`, indicating UTC time:
 
 ```python
 dt_utc = datetime.fromisoformat(utc_time.replace("Z", "+00:00"))
@@ -146,7 +146,7 @@ dt_utc = datetime.fromisoformat(utc_time.replace("Z", "+00:00"))
 
 #### 2. Converting to local time:
 
-Using the library `ZoneInfo`, I converted the `dt_utc` into the timezone you specify (e.g. `“Europe/London”`):
+Using the library `ZoneInfo`, I converted `dt_utc` into the timezone you specify (e.g. `“Europe/London”`):
 
 ```python
 dt_local = dt_utc.astimezone(ZoneInfo(timezone_name))
@@ -154,7 +154,7 @@ dt_local = dt_utc.astimezone(ZoneInfo(timezone_name))
 
 #### 3. Formatting time:
 
-Finally, I formatted the string making it more readable, which included the date, time and the timezone as an abbreviation:
+Finally, I formatted the string making it more readable. This included the date, time and the timezone as an abbreviation:
 
 ```python
 return dt_local.strftime("%Y-%m-%d %H:%M:%S %Z")
@@ -170,7 +170,7 @@ return dt_local.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 #### 1. Create the email client:
 
-I initialised the SMTP2GO client with the API key (received when setting up an accout), to authenticate your account, allowing me to freely send emails:
+I initialised the SMTP2GO client with the API key (received when setting up an accout). This is to authenticate the account, allowing me to freely send emails:
 
 ```python
 client = Smtp2goClient(apikey)
@@ -198,19 +198,19 @@ The `payload` dictionary sets:
 
 Using `client.send(**payload)`, the email is sent.
 
-## Configuring the Script with Command Line Arguments:
+## Command Line Arguments:
 
 To make the script more flexible, I used Python’s built in `argparse`. It allows users to specify inputs such as API key, timezone, email etc, at command-line, when running the program. This prevents users having to modify the code to meet their own needs.
 
 #### Here is a snippet of the script:
 
 ```python
-parser = argparse.ArgumentParser(description="Aurora forecast")
-parser.add_argument('smtp_apikey', help='SMTP2GO API key')
+parser = argparse.ArgumentParser(description="Aurora forecast Script")
+parser.add_argument('smtp_apikey', help='Your SMTP2GO API key')
 parser.add_argument('email', help='Your SMTP2GO email')
 ```
 
-This takes command line inputs, storing them in `args`:
+This takes command line inputs, and stores them all in `args`:
 
 ```python
 args = parser.parse_args()
@@ -228,13 +228,13 @@ This code above means:
 - `email` holds the email address that the user parsed
 - `smtp_apikey` holds the user's API key for SMTP2GO
 
-By assigning each input to variables, the program can use them to fetch and process data from specific locations, convert to specific timezones and send emails to specified email addresses.
+By assigning each input to variables, the program can use them to fetch and process data from specific locations.
 
 ## Containerising the Script Using Docker
 
 ### What is Docker?
 
-Docker is a software that lets you package your script and everything it needs, into a container which can be moved between other machines easily. Containers ensure your script runs exactly the same way on different machines, preventing any unnecessary issues.
+Docker is a software that lets you package your script and everything it requires to run, into a container which can be moved between other machines easily. Containers ensure the script runs exactly the same way on different machines, preventing any unnecessary issues.
 
 I created a Dockerfile inside my Northern Lights folder which contained my script as shown below:
 
@@ -302,7 +302,7 @@ This meant that the image that was built was compatible for the Raspberry Pi’s
 
 ### Transfer Image:
 
-#### 1. Save the image as a .tar file (on your own machine):
+#### 1. Save the image as a tar file (on your own machine):
 
 ```bash
 docker save -o aurora.tar northern_lights:latest
@@ -320,7 +320,7 @@ scp aurora.tar pi@<IP address of Raspberry Pi>:/home/pi/
 ssh pi@<IP address of Raspberry Pi>
 ```
 
-#### 4. Load the .tar file onto the Raspberry Pi:
+#### 4. Load the tar file onto the Raspberry Pi:
 
 ```bash
 docker load -i aurora.tar
@@ -329,28 +329,28 @@ docker load -i aurora.tar
 #### 5. Run the Container:
 
 ```bash
-docker run --rm northern_lights arg1 arg2 arg3
+docker run northern_lights arg1 arg2 arg3
 ```
 
 Note that when I ran the container, nothing seemed to happen, and I was not sure if my script was working or not. So, I ran:
 
 ```bash
-docker run --rm northern_lights arg1 arg2 arg3 >> /home/pi/northern.log 2>&1
+docker run northern_lights arg1 arg2 arg3 >> /home/pi/northern.log 2>&1
 ```
 
 This meant that the result of running the script e.g. any printed lines as well as errors, were stored in the file `northern.log`. This allowed me to tell whether my script was working or not.
 
-Also, the line:
+Also, to view the file live:
 
 ```bash
 tail -f /home/pi/northern.log
 ```
 
-Can be used to view the file live, allowing you to see exactly when and what errors occur.
+This is a useful command as it allowed me to see exactly when and what errors occur.
 
 ## Scheduling the Script with Cron
 
-Once the Docker image could be run reliably on the Raspberry Pi, I wanted a way to automate it. I wanted to run the scipt at regular intervals without the need for me to intervene.
+Once the Docker image could be run reliably on the Raspberry Pi, I wanted the script to run automatically. I wanted to run the scipt at regular intervals without the need for me to intervene.
 
 So, I decided to use `cron`:
 
@@ -359,8 +359,6 @@ So, I decided to use `cron`:
 Cron is a built in Linux tool which allows you to schedule tasks to run automatically at a time or date, specified by the user.
 
 These tasks, which are also known as `cronjob`'s are created in a `crontab` (`cron` table).
-
-I wanted my script to run automatically each hour between 21:00 and 23:00 UTC, every day.
 
 ### Cron Syntax:
 
@@ -386,10 +384,12 @@ crontab -e
 
 #### 2. Add cronjob:
 
+I wanted my script to run automatically each hour between 21:00 and 23:00 UTC, every day:
+
 ```bash
 0 21-23 * * * /usr/bin/docker run --rm northern_lights arg1 arg2 arg3
 ```
 
 Note that in order to find the path to Docker (in my case /usr/bin/docker), type `which docker` into the Raspberry Pi’s terminal.
 
-Also, I used `--rm` in order to automatically delete the container once it has finished running. This ensures that Docker deletes the container as soon as it is stopped, preventing the system from becoming cluttered with multiple unused containers.
+Also, I used `--rm` in order to automatically delete the container once it has finished running. This ensures that the container is deleted as soon as it is stopped, preventing the system from becoming cluttered with multiple unused containers.
