@@ -426,8 +426,6 @@ This is a useful command as it allowed me to see exactly when and what errors oc
 
 Once the Docker image could run reliably on the Raspberry Pi, I wanted the script to run automatically. I wanted to run the scipt at regular intervals without the need for me to intervene.
 
-Note that `cron` may not be the best choice when using it to schedule a script to run at certain times each day. See below...
-
 So, I decided to use `cron`:
 
 ### What is Cron?
@@ -435,6 +433,8 @@ So, I decided to use `cron`:
 Cron is a built in Linux tool which allows you to schedule tasks to run automatically at a time or date, specified by the user.
 
 These tasks, which are also known as `cronjob`'s are created in a `crontab` (`cron` table).
+
+Note that `cron` may not be the best choice when using it to schedule a script to run at certain times each day. See below...
 
 ### Cron Syntax:
 
