@@ -5,7 +5,9 @@ date: 2025-07-18
 ---
 ## Introduction
 
-An aurora is natural vibrant light glowing in the sky caused by electrically charged particles from the sun colliding with the gas mollecules in Earth's atmosphere.
+An aurora is natural vibrant light which glows in the sky. It is caused by electrically charged particles from the sun colliding with the gas mollecules in Earth's atmosphere.
+
+I wanted to create an aurora forecast tool using Python which would provide data on the liklihood of viewing and aurora at my location.
 
 In order to collect data on the percentage of an aurora at a specified location, I used NOAA's (National Oceanic and Atmospheric Administration) 30 minute aurora Forecast. This is powererd by the OVATION (Oval, Variation, Assessment, Tracking, Intensity, and Online Nowcasting) Prime model, which uses real-time data from satellites to estimate how much charged particle activity is hitting the Earth's atmosphere. The OVATION Prime model uses this data to calculate the probability as a percentage of observing an aurora at different locations around the World.
 
@@ -255,9 +257,9 @@ To make the script more flexible, I used Python’s built in `argparse`. It allo
 - OpenWeatherMap API key
 - SMTP2GO API key
 - Location name (Paris)
-- latitude of location (48.8575)
-- longitude of location (2.3514)
-- timezone (Europe/Paris)
+- Latitude of location (48.8575)
+- Longitude of location (2.3514)
+- Timezone (Europe/Paris)
 - SMTP2GO email
 - Recipient emails
 
