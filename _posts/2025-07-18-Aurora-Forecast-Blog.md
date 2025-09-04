@@ -5,19 +5,19 @@ date: 2025-07-18
 ---
 ## Introduction
 
-An aurora is natural vibrant light which glows in the sky. It is caused by electrically charged particles from the sun colliding with the gas mollecules in Earth's atmosphere.
+An aurora is a natural vibrant light which glows in the sky. It is caused by electrically charged particles from the sun colliding with the gas molecules in Earth's atmosphere.
 
-I wanted to create an aurora forecast tool using Python which would provide data on the liklihood of viewing and aurora at my location.
+I wanted to create an aurora forecast tool using Python which would provide data on the likelihood of viewing an aurora at my location.
 
-In order to collect data on the percentage of an aurora at a specified location, I used NOAA's (National Oceanic and Atmospheric Administration) 30 minute aurora Forecast. This is powererd by the OVATION (Oval, Variation, Assessment, Tracking, Intensity, and Online Nowcasting) Prime model, which uses real-time data from satellites to estimate how much charged particle activity is hitting the Earth's atmosphere. The OVATION Prime model uses this data to calculate the probability as a percentage of observing an aurora at different locations around the World.
+In order to collect data on the percentage of an aurora at a specified location, I used the NOAA's (National Oceanic and Atmospheric Administration) 30 minute aurora Forecast. This is powererd by the OVATION (Oval, Variation, Assessment, Tracking, Intensity, and Online Nowcasting) Prime model, which uses real-time data from satellites to estimate how much charged particle activity is hitting the Earth's atmosphere. The OVATION Prime model uses this data to calculate the probability as a percentage of observing an aurora at different locations around the world.
 
-When predicting the liklihood of an aurora, cloud cover is one important factor to consider. Despite a high percentage of observing an aurora at a location, there may be too much cloud cover at that time, obscuring the view. 
+When predicting the likelihood of an aurora, cloud cover is one important factor to consider. Despite a high percentage of observing an aurora at a location, there may be too much cloud cover at that time, obscuring the view.
 
-As well as cloud cover, light intensity is another important factor. Again, despite a high percentage of an aurora, if the sun has not set, the aurora may become difficult to view or not visible at all. This is why I collected data on the time of dusk, to ensure that it is dark enough to view an aurora.
+Light intensity is another important factor. If the sun has not set, the aurora may become difficult to view or may not be visible at all. This is why I have collected data on the time of dusk (the end of twilight), to ensure that it is dark enough to view an aurora.
 
-Once considering these factors, I created a Python script which fetches aurora data of a specific location. It collects cloud cover data, the time of dusk at the location, and the percentage of observing an aurora. I then containerised my script using Docker and scheduled it to run on my Raspberry Pi every day at a certain time using `cron`. Once it has collected all the data, it sends me an email containing all necessary information.
+Having considered these factors, I created a Python script which fetches aurora data of a specific location. It collects cloud cover data, the time of dusk, and the percentage of observing an aurora at the location. I then containerised my script using Docker and scheduled it to run on my Raspberry Pi every day at a certain time using `cron`. Once it has collected all the data, it sends me an email containing all the necessary information.
 
-Note that I used SMTP2GO for sending emails as this website allows emails to be sent without charge and it also has a Python API allowing my to send emails easily using Python.
+Note that I used SMTP2GO for sending emails, as this website allows emails to be sent free of charge and it also has a Python API allowing me to send emails easily using Python.
 
 ### Project Goals
 
@@ -25,7 +25,7 @@ Note that I used SMTP2GO for sending emails as this website allows emails to be 
 - Fetch data on cloud cover from OpenWeatherMap - a service that provides global weather data
 - Fetch data on time of dusk from Sunrise-Sunset - a service that provides global data on sunset and sunrise times
 - Extract the probability of an aurora for the selected coordinates of a location
-- Send an email containing all fetched data using SMTP2GO (a service that allows emails to be sent)
+- Send an email containing all fetched data using SMTP2GO
 - Containerise the script using Docker
 - Schedule the script to run every 21:00 to 23:00 UTC using cron ( a scheduler) on a Raspberry Pi
 
@@ -52,14 +52,14 @@ def fetch_data(url):
 
 ## Fetching Nautical Dusk Data
 
-This uses the Sunrise-Sunset API to get the time when dusk starts (the end of twilight). This is the time when the sky becomes dark enough for aurora and star viewing.
+This uses the Sunrise-Sunset API to get the time when dusk starts. This is the time when the sky becomes dark enough for aurora and star viewing.
 
 The Sunrise-Sunset API provides data on two types of dusk:
 
 - Civil dusk
 - Nautical dusk
 
-I found out that civil dusk is when the sun's position is 6 degrees below the horizon, however, nautical dusk is when the sun is 12 degrees below the horizon. Therefore, the end of nautical dusk (nautical twilight) was the best time to observe an aurora.
+From research, I found that civil dusk is when the sun's position is 6 degrees below the horizon. However, nautical dusk is when the sun is 12 degrees below the horizon. Therefore, the start of nautical dusk (the end of nautical twilight), was the best time to observe an aurora because its dark enough for stars to be visible.
 
 This API response as well as the others, are returned in JSON format, which Python handles as dictionaries and lists, making it easy to extract data.
 
@@ -121,9 +121,9 @@ utc_time = datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime("%Y-%m-%d
 
 ## NOAA's Aurora Forecast Coordinate System
 
-When I first began working with the NOAA aurora 30 minute Forecast data, I assumed that the coordinate format was the same as most other weather forecast API’s - using decimal degrees with negative values for longitudes and negative and positive signs for latitude and longitude. I used this standard format in order to extract the probability of an aurora at a specified location.
+When I first began working with the NOAA aurora 30 minute Forecast data, I assumed that the coordinate format was the same as most other weather forecast API’s - using decimal degrees with positive and negative values for longitudes and latitudes.
 
-However, initially, the extracted aurora data gave unexpected results. When I compared my percentage probability to the aurora 30 minute forecast clip by the NOAA, the probabilities didn’t make sense for the places I collected data from.
+However, the extracted aurora data gave unexpected results. When I compared my percentage probability to the aurora 30 minute forecast clip by the NOAA, the probabilities didn’t make sense for the places I collected data from.
 
 So, I observed the first and last coordinate sets in NOAA’s latest JSON file, I noticed:
 
@@ -143,7 +143,7 @@ From this, I found out that:
 
 Here, I looped through NOAA’s `coordinates` data to find a matching latitude and longitude.
 
-If there is a match, it fetches the associated probability, located at index 2 - `[long, lat, probability]`.
+If there is a match, it fetches the associated probability, located at index 2 - `[long, lat, probability]`, as shown below...
 
 I was able to loop through NOAA’s data easily, because the original JSON had been converted to a Python dictionary through the `fetch_data` function.
 
@@ -170,7 +170,7 @@ for coordinate in data["coordinates"]:
         probability = coordinate[2]
 ```
 
-I also ensured to convert any negative longitudes to positive to match NOAA's coordinate format, as well as rounding any decimal values:
+I also made sure that I converted any negative longitudes to positive, as well as rounding any decimal values, to match NOAA's coordinate format:
 
 ```python
 if long < 0:
@@ -203,7 +203,7 @@ dt_local = dt_utc.astimezone(ZoneInfo(timezone_name))
 
 #### 3. Formatting time:
 
-Finally, I formatted the string making it more readable. This included the date, time and the timezone as an abbreviation:
+Finally, I formatted the string, making it more readable. This included the date, time and the timezone as an abbreviation:
 
 ```python
 return dt_local.strftime("%Y-%m-%d %H:%M:%S %Z")
@@ -250,7 +250,7 @@ Using `client.send(**payload)`, the email is sent.
 
 ## Command Line Arguments:
 
-To make the script more flexible, I used Python’s built in `argparse`. It allows users to specify inputs such as API key, timezone etc, at command-line, when running the program. This prevents users having to modify the code to meet their own needs.
+To make the script more flexible, I used Python’s built in `argparse`. It allows users to specify inputs such as API key, timezone etc. (see below), at command-line, when running the program. This prevents users having to modify the code to meet their own needs.
 
 ### All Command Line Arguments Required:
 
@@ -295,7 +295,7 @@ By assigning each input to variables, the program can use them to fetch and proc
 
 ### What is Docker?
 
-Docker is a software that lets you package your script and everything it requires to run, into a container which can be moved between other machines easily. Containers ensure the script runs exactly the same way on different machines, preventing any unnecessary issues.
+Docker is a software that lets you package your script and everything it requires to run, into a container. Containers can be moved between other machines easily and ensure the script runs exactly the same way on different machines. This prevents any unnecessary issues.
 
 I containerised my script using Docker because an older version of Python existed on my Raspberry Pi, so my script would not run. Docker allowed me to build an image containing all the necessary libraries and the correct Python version, allowing me to run a container containing my script on the Raspberry Pi. This meant that I did not have to install a new version of Python on my Raspberry Pi.
 
@@ -350,11 +350,11 @@ ENTRYPOINT ["python", "northern_lights.py"]
 
 - This means that Docker runs `python northern_lights.py`
 
-At first, when building the image, I used `CMD` isntead of `ENTRYPOINT`. However, this meant command line arguments would replace `python northern_lights.py`.
+At first, when building the image, I used `CMD` isntead of `ENTRYPOINT`. However, this meant the command line arguments would replace `python northern_lights.py`.
 
-This meant that `arg1` `arg2` `arg3...` would run instead of `python northern_lights.py` `arg1` `arg2` `arg3...`, which lead to the script not running.
+So, `arg1` `arg2` `arg3...` would run instead of `python northern_lights.py arg1 arg2 arg3...`, which lead to the script not running.
 
-`ENTRYPOINT` did not replace `python northern_lights.py` with the command line arguments and instead added them afterwards.
+`ENTRYPOINT` did not replace `python northern_lights.py` with the command line arguments and instead it added them afterwards.
 
 ## Build and Transfer Docker Image to Raspberry Pi
 
@@ -408,25 +408,25 @@ docker load -i aurora.tar
 docker run northern_lights <openweatherAPIkey> <smtpAPIkey> Paris 48.8575 2.3514 Europe/Paris <smtp email> <recipient emails>
 ```
 
-Note that when I ran the container, nothing seemed to happen, and I was not sure if my script was working or not. So, I ran:
+Note that when I ran the container, there didn't appear to be any change, and I was not sure if my script was working or not. So, I ran:
 
 ```bash
 docker run northern_lights arg1 arg2 arg3 >> /home/pi/northern.log 2>&1
 ```
 
-This meant that the result of running the script e.g. any printed lines as well as errors, were stored in the file `northern.log`. This allowed me to tell whether my script was working or not.
+This meant that the result of running the script e.g. any printed lines as well as errors, were stored in the file `northern.log`. This allowed me to see if my script was functioning.
 
-Also, to view the file live:
+Also, to view the file in real-time:
 
 ```bash
 tail -f /home/pi/northern.log
 ```
 
-This is a useful command as it allowed me to see exactly when and what errors occur.
+This is a useful command as it allowed me to see exactly when and what errors occurred.
 
 ## Scheduling the Script with Cron
 
-Once the Docker image could run reliably on the Raspberry Pi, I wanted the script to run automatically. I wanted to run the scipt at regular intervals without the need for me to intervene.
+Once the Docker image could run reliably on the Raspberry Pi, I wanted the script to run automatically and ideally, at regular intervals, without the need for me to intervene.
 
 So, I decided to use `cron`:
 
@@ -436,7 +436,7 @@ Cron is a built in Linux tool which allows you to schedule tasks to run automati
 
 These tasks, which are also known as `cronjob`'s are created in a `crontab` (`cron` table).
 
-Note that `cron` may not be the best choice when using it to schedule a script to run at certain times each day. See below...
+Note that `cron` may not be the best choice when using it to schedule a script to run at certain times each day. (See 'Downsides of Cron')
 
 ### Cron Syntax:
 
@@ -468,12 +468,12 @@ I wanted my script to run automatically each hour between 21:00 and 23:00 UTC, e
 0 21-23 * * * /usr/bin/docker run --rm northern_lights arg1 arg2 arg3
 ```
 
-Note that in order to find the path to Docker (in my case /usr/bin/docker), type `which docker` into the Raspberry Pi’s terminal.
+Note that in order to find the path to Docker (in my case /usr/bin/docker) I typed, `which docker` into the Raspberry Pi’s terminal.
 
-Also, I used `--rm` in order to automatically delete the container once it has finished running. This ensures that the container is deleted as soon as it is stopped, preventing the system from becoming cluttered with multiple unused containers.
+Also, I used `--rm` in order to automatically delete the container once it had finished running. This ensures that the container is deleted as soon as it is stopped, preventing the system from becoming cluttered with multiple unused containers.
 
 ### Downsides of Cron:
 
-The version of `cron` on my Raspberry Pi (Vixie cron) did not support scheduling a script to run in a different timezone other than the native one. As a result, when I wanted to run a script at a certain time in another timezone, I had to manually convert the time in the other timezone to the equivilent time in my native timezone.
+The version of `cron` on my Raspberry Pi (Vixie cron) did not support scheduling a script to run in a different timezone other than the native one. As a result, when I wanted to run a script at a certain time in another timezone, I had to manually convert the time in the other timezone to the equivalent time in my native timezone.
 
 In future, a better option would be scheduling inside the container using a Python library such as `time`. This would allow me to run the Python app as a continually running service.
