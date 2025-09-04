@@ -1,23 +1,23 @@
 ---
 layout: post
-title: "Aurora Borealis Forecast Tool"
+title: "Aurora Borealis Forecast"
 date: 2025-07-18
 ---
 ## Introduction
 
-An aurora is a natural vibrant light which glows in the sky. It is caused by electrically charged particles from the sun colliding with the gas molecules in Earth's atmosphere.
+The [aurora](https://en.wikipedia.org/wiki/Aurora) is a natural vibrant light which glows in the sky. It is caused by electrically charged particles from the sun colliding with the gas molecules in Earth's atmosphere.
 
-I wanted to create an aurora forecast tool using Python which would provide data on the likelihood of viewing an aurora at my location.
+I had the opportunity to visit the Canadian Rockies, a region famous for aurora sightings, so I decided to create an aurora forecast tool to notify me when it might be possible to see one. 
 
-In order to collect data on the percentage of an aurora at a specified location, I used the NOAA's (National Oceanic and Atmospheric Administration) 30 minute aurora Forecast. This is powererd by the OVATION (Oval, Variation, Assessment, Tracking, Intensity, and Online Nowcasting) Prime model, which uses real-time data from satellites to estimate how much charged particle activity is hitting the Earth's atmosphere. The OVATION Prime model uses this data to calculate the probability as a percentage of observing an aurora at different locations around the world.
+The National Oceanic and Atmospheric Administration (NOAA) is a U.S. scientific agency which monitors weather and climate. The NOAA provides 30 minute aurora forecast data on locations around the world.
+
+They use real-time data from satellites to estimate how much charged particle activity is hitting the Earth's atmosphere. This allows them to calculate the probability of observing an aurora at different locations around the world.
 
 When predicting the likelihood of an aurora, cloud cover is one important factor to consider. Despite a high percentage of observing an aurora at a location, there may be too much cloud cover at that time, obscuring the view.
 
-Light intensity is another important factor. If the sun has not set, the aurora may become difficult to view or may not be visible at all. This is why I have collected data on the time of dusk (the end of twilight), to ensure that it is dark enough to view an aurora.
+Daylight is another important factor. If the sun has not set, the aurora may become difficult to view or may not be visible at all. This is why it is important to consider the time of dusk (the time when it is dark enough to view stars).
 
-Having considered these factors, I created a Python script which fetches aurora data of a specific location. It collects cloud cover data, the time of dusk, and the percentage of observing an aurora at the location. I then containerised my script using Docker and scheduled it to run on my Raspberry Pi every day at a certain time using `cron`. Once it has collected all the data, it sends me an email containing all the necessary information.
-
-Note that I used SMTP2GO for sending emails, as this website allows emails to be sent free of charge and it also has a Python API allowing me to send emails easily using Python.
+Having considered these factors, I created a Python script which collects cloud cover data, the time of dusk, and the percentage of observing an aurora (from the NOAA). It then sends me an email containing this data. I also containerised my script using Docker and scheduled it to run on my Raspberry Pi every day.
 
 ### Project Goals
 
@@ -32,7 +32,14 @@ Note that I used SMTP2GO for sending emails, as this website allows emails to be
 ### Technology Used
 
 - Python
-- Libraries: `pytest`, `json`, `requests`, `datetime`, `argparse`, `zoneinfo`, `smtp2goClient`
+- Libraries: 
+  - `requests` - HTTP get requests
+  - `datetime` - converting date/time to UTC
+  - `argparse` - command line arguments
+  - `zoneinfo` - converting timezones
+  - `pytest` - unit testing
+  - `json` - used in unit testing
+  - `smtp2goClient` - sending emails
 - Docker
 - `cron`
 
@@ -84,7 +91,7 @@ utc_time = datetime.fromisoformat(raw_time).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 This uses the OpenWeatherMap API to collect data on cloud cover for the next 3 hours.
 
-Here is an snippet of a JSON response from OpenWeatherMap:
+Here is a snippet of a JSON response from OpenWeatherMap:
 
 ```json
 {
@@ -187,7 +194,7 @@ These snippets of code convert UTC to any local timezone which is specified by t
 
 #### 1. Parsing the UTC timestamp:
 
-UTC time strings usually end in `“Z”`, which means UTC time. However, `fromisoformat()` can't recognise `“Z”` directly, so I replaced it with `“+00:00”`, the equivilent of `“Z”`, indicating UTC time:
+UTC time strings usually end in `“Z”`, which means UTC time. However, `fromisoformat()` can't recognise `“Z”` directly, so I replaced it with `“+00:00”`, the equivalent of `“Z”`, indicating UTC time:
 
 ```python
 dt_utc = datetime.fromisoformat(utc_time.replace("Z", "+00:00"))
@@ -217,9 +224,11 @@ return dt_local.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 ## Sending Emails:
 
+I used SMTP2GO because I could send emails free of charge and they provided a Python API.
+
 #### 1. Create the email client:
 
-I initialised the SMTP2GO client with the API key (received when setting up an accout). This is to authenticate the account, allowing me to freely send emails:
+I initialised the SMTP2GO client with the API key (received when setting up an account). This is to authenticate the account, allowing me to freely send emails:
 
 ```python
 client = Smtp2goClient(apikey)
@@ -329,7 +338,7 @@ RUN apt-get update && apt-get install -y tzdata && pip install requests smtp2go
 ```
 
 - `apt-get update` is used to fetch the latest version of tzdata, preventing any outdated software from being installed
-- Installs `tzdata` inside the container which is one of our libraries that is needed for handing timezones
+- Installs `tzdata` inside the container which is one of our libraries that is needed for handling timezones
 - Installs `requests` for HTTP get requests and `smtp2go` for dispatching emails 
 
 Previously, I had two `RUN` lines in my `Dockerfile`:
@@ -350,7 +359,7 @@ ENTRYPOINT ["python", "northern_lights.py"]
 
 - This means that Docker runs `python northern_lights.py`
 
-At first, when building the image, I used `CMD` isntead of `ENTRYPOINT`. However, this meant the command line arguments would replace `python northern_lights.py`.
+At first, when building the image, I used `CMD` instead of `ENTRYPOINT`. However, this meant the command line arguments would replace `python northern_lights.py`.
 
 So, `arg1` `arg2` `arg3...` would run instead of `python northern_lights.py arg1 arg2 arg3...`, which lead to the script not running.
 
@@ -366,7 +375,7 @@ At first, when I built the docker image, I used:
 docker build -t northern_lights .
 ```
 
-However, after transfering this image to the Raspberry Pi, I came across an error telling me that the container was built for the wrong CPU architecture.
+However, after transferring this image to the Raspberry Pi, I came across an error telling me that the container was built for the wrong CPU architecture.
 
 So, instead I used:
 
@@ -434,7 +443,7 @@ So, I decided to use `cron`:
 
 Cron is a built in Linux tool which allows you to schedule tasks to run automatically at a time or date, specified by the user.
 
-These tasks, which are also known as `cronjob`'s are created in a `crontab` (`cron` table).
+These tasks, which are also known as `cron job`'s are created in a `crontab` (`cron` table).
 
 Note that `cron` may not be the best choice when using it to schedule a script to run at certain times each day. (See 'Downsides of Cron')
 
@@ -452,7 +461,7 @@ Cron syntax uses five different sections in order to schedule tasks. Each of the
  # * * * * * <command to execute>
 ```
 
-### Setting up a Cronjob:
+### Setting up a Cron Job:
 
 #### 1. Open the crontab editor:
 
@@ -460,7 +469,7 @@ Cron syntax uses five different sections in order to schedule tasks. Each of the
 crontab -e
 ```
 
-#### 2. Add cronjob:
+#### 2. Add Cron Job:
 
 I wanted my script to run automatically each hour between 21:00 and 23:00 UTC, every day:
 
