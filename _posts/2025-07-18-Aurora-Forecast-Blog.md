@@ -71,7 +71,7 @@ From research, I found that civil dusk is when the sun's position is 6 degrees b
 This API response as well as the others, are returned in JSON format, which Python handles as dictionaries and lists, making it easy to extract data.
 
 ```python
-url = f"https://api.sunrise-sunset.org/json?lat={lat}&lng={long}&date=today&formatted=0"
+url = f"https://api.sunrise-sunset.org/json?lat={lat}&lng={lon}&date=today&formatted=0"
 jsontext = requests.get(url)
 data = jsontext.json()
 raw_time = data['results']['nautical_twilight_end']
@@ -150,7 +150,7 @@ From this, I found out that:
 
 Here, I looped through NOAA’s `coordinates` data to find a matching latitude and longitude.
 
-If there is a match, it fetches the associated probability, located at index 2 - `[long, lat, probability]`, as shown below...
+If there is a match, it fetches the associated probability, located at index 2 - `[lon, lat, probability]`, as shown below...
 
 I was able to loop through NOAA’s data easily, because the original JSON had been converted to a Python dictionary through the `fetch_data` function.
 
@@ -173,16 +173,16 @@ This JSON response contains the time to observe the aurora (observation time), t
 
 ```python
 for coordinate in data["coordinates"]:
-    if coordinate[0] == long and coordinate[1] == lat:
+    if coordinate[0] == lon and coordinate[1] == lat:
         probability = coordinate[2]
 ```
 
 I also made sure that I converted any negative longitudes to positive, as well as rounding any decimal values, to match NOAA's coordinate format:
 
 ```python
-if long < 0:
-    long = 360 + long
-long = math.floor(long)
+if lon < 0:
+    lon = 360 + lon
+lon = math.floor(lon)
 lat = math.floor(lat)
 ```
 
@@ -265,10 +265,10 @@ To make the script more flexible, I used Python’s built in `argparse`. It allo
 
 - OpenWeatherMap API key
 - SMTP2GO API key
-- Location name (Paris)
-- Latitude of location (48.8575)
-- Longitude of location (2.3514)
-- Timezone (Europe/Paris)
+- Location name (Jasper)
+- Latitude of location (52.8734)
+- Longitude of location (-118.0814)
+- Timezone (US/Mountain)
 - SMTP2GO email
 - Recipient emails
 
@@ -414,7 +414,7 @@ docker load -i aurora.tar
 #### 5. Run the Container:
 
 ```bash
-docker run northern_lights <openweatherAPIkey> <smtpAPIkey> Paris 48.8575 2.3514 Europe/Paris <smtp email> <recipient emails>
+docker run northern_lights <openweatherAPIkey> <smtpAPIkey> Jasper 52.8734 -118.0814 US/Mountain <smtp email> <recipient emails>
 ```
 
 Note that when I ran the container, there didn't appear to be any change, and I was not sure if my script was working or not. So, I ran:
