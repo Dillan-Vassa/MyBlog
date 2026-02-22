@@ -5,5 +5,5 @@ permalink: /about/
 ---
 # Dillan Vassa
 
-Git Hub: [Dillan-Vassa](https://dillan-vassa.github.io/blog/)
+Git Hub: [Dillan-Vassa](https://github.com/Dillan-Vassa)
 Blog by Dillan Vassa about different programming projects.
